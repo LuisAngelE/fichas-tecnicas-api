@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ModelController;
 use App\Http\Controllers\SegmentController;
@@ -10,12 +11,36 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    $user = $request->user();
+
+    return response()->json([
+        'id' => $user->id,
+        'first_name' => $user->first_name,
+        'middle_name' => $user->middle_name,
+        'last_name' => $user->last_name,
+        'second_last_name' => $user->second_last_name,
+        'email' => $user->email,
+        'phone' => $user->phone,
+        'employee_number' => $user->employee_number,
+        'user_type' => $user->user_type,
+    ]);
 });
 
-Route::resource('/technical-sheets', TechnicalSheetController::class);
-Route::resource('/categories', CategoryController::class);
-Route::resource('/subcategories', SubcategoryController::class);
-Route::resource('/segments', SegmentController::class);
-Route::resource('/models', ModelController::class);
-Route::resource('/users', UserController::class);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/me', [AuthController::class, 'me']);
+
+    Route::resource('/technical-sheets', TechnicalSheetController::class);
+
+    Route::resource('/categories', CategoryController::class);
+
+    Route::resource('/subcategories', SubcategoryController::class);
+
+    Route::resource('/segments', SegmentController::class);
+
+    Route::resource('/models', ModelController::class);
+
+    Route::resource('/users', UserController::class);
+});
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login/{employee_number}', [AuthController::class, 'login']);

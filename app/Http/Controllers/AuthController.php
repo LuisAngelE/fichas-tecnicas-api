@@ -58,46 +58,32 @@ class AuthController extends Controller
         }
     }
 
-    public function login(Request $request)
+    public function login($employee_number)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|string|email',
-                'password' => 'required|string',
-            ], [
-                'email.required' => 'El correo electrónico es obligatorio.',
-                'email.email' => 'El correo electrónico debe ser una dirección válida.',
-                'password.required' => 'La contraseña es obligatoria.',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
-
-            $user = User::where('email', $request->email)->first();
+            $user = User::where('employee_number', $employee_number)->first();
 
             if (!$user) {
-                return response()->json(['error' => 'El usuario no existe.'], 404);
-            }
-
-            if (!Hash::check($request->password, $user->password)) {
-                return response()->json(['error' => 'Contraseña incorrecta.'], 401);
+                return response()->json([
+                    'error' => 'Empleado no encontrado.'
+                ], 404);
             }
 
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
-                'message' => 'Inicio de sesión exitoso',
+                'message' => 'Autenticación exitosa',
                 'user' => $user,
                 'token' => $token
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Error de inicio de sesión',
+                'error' => 'Error al autenticar empleado',
                 'message' => $e->getMessage()
             ], 500);
         }
     }
+
 
     public function me(Request $request)
     {

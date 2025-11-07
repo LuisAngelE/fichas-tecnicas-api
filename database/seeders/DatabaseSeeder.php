@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             SegmentSeeder::class,
             ModelSeeder::class,
             TechnicalSheetSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

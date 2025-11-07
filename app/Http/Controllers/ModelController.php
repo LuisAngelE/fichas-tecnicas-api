@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CarModel;
 use Illuminate\Http\Request;
 
 class ModelController extends Controller
@@ -13,7 +14,12 @@ class ModelController extends Controller
      */
     public function index()
     {
-        //
+        $models = CarModel::all();
+
+        return response()->json([
+            'success' => true,
+            'data' => $models
+        ]);
     }
 
     /**

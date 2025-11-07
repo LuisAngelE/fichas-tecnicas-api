@@ -12,9 +12,6 @@ use Illuminate\Support\Facades\Storage;
 
 class TechnicalSheetController extends Controller
 {
-    /**
-     * 🔍 Listar fichas técnicas con filtros dinámicos
-     */
     public function index(Request $request)
     {
         $query = TechnicalSheet::query()
@@ -22,7 +19,6 @@ class TechnicalSheetController extends Controller
                 'model.segment.subcategory.category'
             ]);
 
-        // 🔎 Filtros dinámicos
         if ($request->filled('category_id')) {
             $query->whereHas('model.segment.subcategory.category', function ($q) use ($request) {
                 $q->where('id', $request->category_id);
@@ -59,14 +55,11 @@ class TechnicalSheetController extends Controller
         ]);
     }
 
-    /**
-     * 📥 Subir una nueva ficha técnica (PDF)
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'model_id' => 'required|exists:models,id',
-            'file' => 'required|file|mimes:pdf|max:10240', // hasta 10MB
+            'file' => 'required|file|mimes:pdf|max:10240',
             'version' => 'nullable|string|max:50',
         ]);
 
@@ -87,14 +80,10 @@ class TechnicalSheetController extends Controller
         ]);
     }
 
-    /**
-     * 🗑 Eliminar una ficha técnica
-     */
     public function destroy($id)
     {
         $sheet = TechnicalSheet::findOrFail($id);
 
-        // Eliminar archivo del storage
         if (Storage::disk('public')->exists($sheet->file_path)) {
             Storage::disk('public')->delete($sheet->file_path);
         }
@@ -107,9 +96,6 @@ class TechnicalSheetController extends Controller
         ]);
     }
 
-    /**
-     * 🧩 Obtener jerarquía para filtros (categorías, subcategorías, etc.)
-     */
     public function filters()
     {
         $categories = Category::with([

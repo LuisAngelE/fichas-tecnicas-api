@@ -14,8 +14,8 @@ class SegmentController extends Controller
      */
     public function index()
     {
-        $segments = Segment::all();
-        
+        $segments = Segment::with('subcategory')->get();
+
         return response()->json([
             'success' => true,
             'data' => $segments

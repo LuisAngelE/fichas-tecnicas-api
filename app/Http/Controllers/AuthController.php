@@ -83,28 +83,4 @@ class AuthController extends Controller
             ], 500);
         }
     }
-
-
-    public function me(Request $request)
-    {
-        try {
-            $user = $request->user()->load('imageProfile');
-
-            if (!$user->imageProfile) {
-                $user->imageProfile = (object)[
-                    'url' => asset('images/default.png')
-                ];
-            }
-
-            return response()->json([
-                'message' => 'Usuario autenticado',
-                'user' => $user
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error al obtener el usuario',
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
 }

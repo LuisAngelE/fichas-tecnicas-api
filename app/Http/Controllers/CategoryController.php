@@ -4,87 +4,115 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
-        $categories = Category::all();
-
-        return response()->json([
-            'success' => true,
-            'data' => $categories
-        ]);
+        try {
+            $categories = Category::all();
+            return response()->json($categories, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al obtener las categorías',
+                'mensaje' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
-        //
+        try {
+            $category = Category::findOrFail($id);
+            return response()->json($category, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Categoría no encontrada',
+                'mensaje' => $e->getMessage()
+            ], 404);
+        }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
+    public function store(Request $request)
     {
-        //
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255|unique:categories,name',
+                'description' => 'nullable|string',
+            ], [
+                'name.required' => 'El nombre es obligatorio',
+                'name.max' => 'El nombre no puede tener más de 255 caracteres',
+                'name.unique' => 'El nombre ya existe',
+            ]);
+
+            $category = Category::create($validated);
+
+            return response()->json([
+                'mensaje' => 'Categoría creada correctamente',
+                'categoría' => $category
+            ], 201);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'error' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al crear la categoría',
+                'mensaje' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $id)
     {
-        //
+        try {
+            $category = Category::findOrFail($id);
+
+            $validated = $request->validate([
+                'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+                'description' => 'nullable|string',
+            ], [
+                'name.required' => 'El nombre es obligatorio',
+                'name.max' => 'El nombre no puede tener más de 255 caracteres',
+                'name.unique' => 'El nombre ya existe',
+            ]);
+
+            $category->update($validated);
+
+            return response()->json([
+                'mensaje' => 'Categoría actualizada correctamente',
+                'categoría' => $category
+            ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'error' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al actualizar la categoría',
+                'mensaje' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
-        //
+        try {
+            $category = Category::findOrFail($id);
+
+            $category->delete();
+
+            return response()->json([
+                'mensaje' => 'Categoría eliminada correctamente.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al eliminar la categoría',
+                'mensaje' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

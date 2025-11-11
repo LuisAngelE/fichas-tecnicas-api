@@ -11,8 +11,14 @@ class CarModel extends Model
     use HasFactory, SoftDeletes;
 
     protected $table = 'models';
-    
+
     protected $fillable = ['segment_id', 'name', 'description'];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+    ];
 
     public function segment()
     {

@@ -2,10 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use App\Models\Subcategory;
-use App\Models\Segment;
-use App\Models\CarModel;
 use App\Models\TechnicalSheet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +12,7 @@ class TechnicalSheetController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = TechnicalSheet::with(['model.segment.subcategory.category']);
+            $query = TechnicalSheet::with(['model.segment.subcategory.category', 'user']);
 
             if ($request->filled('category_id')) {
                 $query->whereHas('model.segment.subcategory.category', function ($q) use ($request) {
@@ -60,6 +56,19 @@ class TechnicalSheetController extends Controller
         }
     }
 
+    public function show($id)
+    {
+        try {
+            $sheet = TechnicalSheet::with(['model.segment.subcategory.category'])->findOrFail($id);
+            return response()->json($sheet, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Ficha técnica no encontrada',
+                'mensaje' => $e->getMessage()
+            ], 404);
+        }
+    }
+
     public function store(Request $request)
     {
         try {
@@ -72,7 +81,7 @@ class TechnicalSheetController extends Controller
                 'model_id.exists' => 'El modelo seleccionado no existe',
                 'file.required' => 'El archivo es obligatorio',
                 'file.mimes' => 'Solo se permiten archivos PDF',
-                'file.max' => 'El tamaño máximo permitido es de 10 MB',
+                'file.max' => 'El tamaño máximo permitido es de 50 MB',
                 'version.max' => 'La versión no puede tener más de 50 caracteres',
             ]);
 
@@ -103,6 +112,55 @@ class TechnicalSheetController extends Controller
         }
     }
 
+    public function update(Request $request, $id)
+    {
+        try {
+            $sheet = TechnicalSheet::findOrFail($id);
+
+            $validated = $request->validate([
+                'model_id' => 'required|exists:models,id',
+                'version' => 'nullable|string|max:50',
+                'file' => 'nullable|file|mimes:pdf|max:10240',
+            ], [
+                'model_id.required' => 'El modelo es obligatorio',
+                'model_id.exists' => 'El modelo seleccionado no existe',
+                'file.mimes' => 'Solo se permiten archivos PDF',
+                'file.max' => 'El tamaño máximo permitido es de 50 MB',
+                'version.max' => 'La versión no puede tener más de 50 caracteres',
+            ]);
+
+            if ($request->hasFile('file')) {
+                if (\Storage::disk('public')->exists($sheet->file_path)) {
+                    \Storage::disk('public')->delete($sheet->file_path);
+                }
+
+                $path = $request->file('file')->store('fichas', 'public');
+
+                $sheet->file_name = $request->file('file')->getClientOriginalName();
+                $sheet->file_path = $path;
+            }
+
+            $sheet->model_id = $validated['model_id'];
+            $sheet->version = $validated['version'] ?? $sheet->version;
+            $sheet->save();
+
+            return response()->json([
+                'mensaje' => 'Ficha técnica actualizada correctamente',
+                'ficha_técnica' => $sheet
+            ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'error' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al actualizar la ficha técnica',
+                'mensaje' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function destroy($id)
     {
         try {
@@ -120,23 +178,6 @@ class TechnicalSheetController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Error al eliminar la ficha técnica',
-                'mensaje' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function filters()
-    {
-        try {
-            $categories = Category::with(['subcategories.segments.models'])->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $categories
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error al obtener los filtros',
                 'mensaje' => $e->getMessage()
             ], 500);
         }

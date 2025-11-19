@@ -12,7 +12,7 @@ class TechnicalSheetController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = TechnicalSheet::with(['model.segment.subcategory.category', 'user']);
+            $query = TechnicalSheet::with(['model.segment.subcategory.category', 'user', 'image']);
 
             if ($request->filled('category_id')) {
                 $query->whereHas('model.segment.subcategory.category', function ($q) use ($request) {
@@ -43,6 +43,14 @@ class TechnicalSheetController extends Controller
             }
 
             $sheets = $query->orderByDesc('created_at')->get();
+
+            $sheets->each(function ($sheet) {
+                if (!$sheet->image) {
+                    $sheet->image = (object)[
+                        'url' => asset('storage/fichas/imagenes/default.webp')
+                    ];
+                }
+            });
 
             return response()->json([
                 'success' => true,
@@ -76,6 +84,9 @@ class TechnicalSheetController extends Controller
                 'model_id' => 'required|exists:models,id',
                 'file' => 'required|file|mimes:pdf|max:10240',
                 'version' => 'nullable|string|max:50',
+                'status' => 'required',
+                'status' => 'required|in:' . TechnicalSheet::Development . ',' . TechnicalSheet::Completed,
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             ], [
                 'model_id.required' => 'El modelo es obligatorio',
                 'model_id.exists' => 'El modelo seleccionado no existe',
@@ -83,17 +94,43 @@ class TechnicalSheetController extends Controller
                 'file.mimes' => 'Solo se permiten archivos PDF',
                 'file.max' => 'El tamaño máximo permitido es de 50 MB',
                 'version.max' => 'La versión no puede tener más de 50 caracteres',
+                'status.required' => 'El estatus es obligatorio.',
+                'status.in' => 'El estatus debe ser 1 (En desarrollo) o 2 (Completada).',
+                'image.image' => 'El archivo debe ser una imagen.',
+                'image.mimes' => 'La imagen debe ser jpeg, png, jpg o gif.',
+                'image.max' => 'La imagen no debe pesar más de 2MB.',
             ]);
 
             $path = $request->file('file')->store('fichas', 'public');
 
             $sheet = TechnicalSheet::create([
                 'model_id' => $validated['model_id'],
+                'status' => $validated['status'],
                 'file_name' => $request->file('file')->getClientOriginalName(),
                 'file_path' => $path,
                 'version' => $validated['version'] ?? 'v1.0',
                 'uploaded_by' => auth()->id() ?? null,
             ]);
+
+            if ($request->hasFile('image')) {
+
+                $file = $request->file('image');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $imagePath = $file->storeAs('fichas/imagenes', $filename, 'public');
+                $url = asset('storage/' . $imagePath);
+
+                if ($sheet->image) {
+                    $oldPath = str_replace(asset('storage') . '/', '', $sheet->image->url);
+
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
+
+                    $sheet->image->update(['url' => $url]);
+                } else {
+                    $sheet->image()->create(['url' => $url]);
+                }
+            }
 
             return response()->json([
                 'mensaje' => 'Ficha técnica subida correctamente',
@@ -165,10 +202,6 @@ class TechnicalSheetController extends Controller
     {
         try {
             $sheet = TechnicalSheet::findOrFail($id);
-
-            if (Storage::disk('public')->exists($sheet->file_path)) {
-                Storage::disk('public')->delete($sheet->file_path);
-            }
 
             $sheet->delete();
 

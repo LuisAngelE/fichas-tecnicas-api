@@ -72,6 +72,13 @@ class SegmentController extends Controller
         try {
             $segment = Segment::findOrFail($id);
 
+            if ($segment->models()->exists()) {
+                return response()->json([
+                    'error' => 'No se puede editar el segmento.',
+                    'mensaje' => 'El segmento tiene modelos asociados y no puede ser editado.'
+                ], 409);
+            }
+
             $validated = $request->validate([
                 'subcategory_id' => 'required|exists:subcategories,id',
                 'name' => 'required|string|max:255|unique:segments,name,' . $segment->id,
@@ -106,6 +113,13 @@ class SegmentController extends Controller
     {
         try {
             $segment = Segment::findOrFail($id);
+
+            if ($segment->models()->exists()) {
+                return response()->json([
+                    'error' => 'No se puede eliminar el segmento.',
+                    'mensaje' => 'El segmento tiene modelos asociados y no puede ser eliminado.'
+                ], 409); 
+            }
 
             $segment->delete();
 

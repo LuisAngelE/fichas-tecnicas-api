@@ -9,8 +9,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class TechnicalSheet extends Model
 {
     use HasFactory, SoftDeletes;
-    
-    protected $fillable = ['model_id', 'file_name', 'file_path', 'version', 'uploaded_by'];
+
+    const Development  = 1;
+    const Completed = 2;
+
+    protected $fillable = ['status', 'model_id', 'file_name', 'file_path', 'version', 'uploaded_by'];
 
     public function model()
     {
@@ -20,5 +23,10 @@ class TechnicalSheet extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function image()
+    {
+        return $this->morphOne(Image::class, 'imageable');
     }
 }

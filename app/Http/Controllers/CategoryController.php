@@ -70,6 +70,13 @@ class CategoryController extends Controller
         try {
             $category = Category::findOrFail($id);
 
+            if ($category->subcategories()->exists()) {
+                return response()->json([
+                    'error' => 'No se puede editar la categoría.',
+                    'mensaje' => 'La categoría tiene subcategorías asociadas y no puede ser editada.'
+                ], 409);
+            }
+
             $validated = $request->validate([
                 'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
                 'description' => 'nullable|string',
@@ -102,6 +109,13 @@ class CategoryController extends Controller
     {
         try {
             $category = Category::findOrFail($id);
+
+            if ($category->subcategories()->exists()) {
+                return response()->json([
+                    'error' => 'No se puede eliminar la categoría.',
+                    'mensaje' => 'La categoría tiene subcategorías asociadas y no puede ser eliminada.'
+                ], 409);
+            }
 
             $category->delete();
 

@@ -13,14 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('technical_sheets', function (Blueprint $table) {
+        Schema::create('images', function (Blueprint $table) {
             $table->id();
-            $table->unsignedTinyInteger('status')->nullable();
-            $table->foreignId('model_id')->constrained()->onDelete('cascade');
-            $table->string('file_name');
-            $table->string('file_path');
-            $table->string('version')->nullable();
-            $table->foreignId('uploaded_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->string('url');
+            $table->integer('imageable_id');
+            $table->string('imageable_type');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -33,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('technical_sheets');
+        Schema::dropIfExists('images');
     }
 };

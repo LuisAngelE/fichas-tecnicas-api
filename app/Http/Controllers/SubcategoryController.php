@@ -72,6 +72,13 @@ class SubcategoryController extends Controller
         try {
             $subcategory = Subcategory::findOrFail($id);
 
+            if ($subcategory->segments()->exists()) {
+                return response()->json([
+                    'error' => 'No se puede editar la subcategoría.',
+                    'mensaje' => 'La subcategoría tiene segmentos asociados y no puede ser editada.'
+                ], 409);
+            }
+
             $validated = $request->validate([
                 'category_id' => 'required|exists:categories,id',
                 'name' => 'required|string|max:255|unique:subcategories,name,' . $subcategory->id,
@@ -106,6 +113,13 @@ class SubcategoryController extends Controller
     {
         try {
             $subcategory = Subcategory::findOrFail($id);
+
+            if ($subcategory->segments()->exists()) {
+                return response()->json([
+                    'error' => 'No se puede eliminar la subcategoría.',
+                    'mensaje' => 'La subcategoría tiene segmentos asociados y no puede ser eliminada.'
+                ], 409); 
+            }
 
             $subcategory->delete();
 

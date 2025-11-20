@@ -9,10 +9,10 @@ use Illuminate\Validation\ValidationException;
 
 class TechnicalSheetController extends Controller
 {
-    public function index(Request $request)
+    private function getByStatus(Request $request, $status)
     {
         try {
-            $query = TechnicalSheet::with(['model.segment.subcategory.category', 'user', 'image']);
+            $query = TechnicalSheet::with(['model.segment.subcategory.category', 'user', 'image'])->where('status', $status);
 
             if ($request->filled('category_id')) {
                 $query->whereHas('model.segment.subcategory.category', function ($q) use ($request) {
@@ -62,6 +62,16 @@ class TechnicalSheetController extends Controller
                 'mensaje' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function inDevelopment(Request $request)
+    {
+        return $this->getByStatus($request, TechnicalSheet::Development);
+    }
+
+    public function completed(Request $request)
+    {
+        return $this->getByStatus($request, TechnicalSheet::Completed);
     }
 
     public function show($id)
@@ -157,16 +167,25 @@ class TechnicalSheetController extends Controller
             $validated = $request->validate([
                 'model_id' => 'required|exists:models,id',
                 'version' => 'nullable|string|max:50',
+                'status' => 'required|in:' . TechnicalSheet::Development . ',' . TechnicalSheet::Completed,
                 'file' => 'nullable|file|mimes:pdf|max:10240',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ], [
                 'model_id.required' => 'El modelo es obligatorio',
                 'model_id.exists' => 'El modelo seleccionado no existe',
                 'file.mimes' => 'Solo se permiten archivos PDF',
                 'file.max' => 'El tamaño máximo permitido es de 50 MB',
                 'version.max' => 'La versión no puede tener más de 50 caracteres',
+                'status.required' => 'El estatus es obligatorio.',
+                'status.in' => 'El estatus debe ser 1 (En desarrollo) o 2 (Completada).',
+                'image.image' => 'El archivo debe ser una imagen.',
+                'image.mimes' => 'La imagen debe ser jpeg, png, jpg o gif.',
+                'image.max' => 'La imagen no debe pesar más de 2MB.',
             ]);
 
+
             if ($request->hasFile('file')) {
+
                 if (\Storage::disk('public')->exists($sheet->file_path)) {
                     \Storage::disk('public')->delete($sheet->file_path);
                 }
@@ -177,7 +196,28 @@ class TechnicalSheetController extends Controller
                 $sheet->file_path = $path;
             }
 
+            if ($request->hasFile('image')) {
+
+                $file = $request->file('image');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $imagePath = $file->storeAs('fichas/imagenes', $filename, 'public');
+                $url = asset('storage/' . $imagePath);
+
+                if ($sheet->image) {
+                    $oldPath = str_replace(asset('storage') . '/', '', $sheet->image->url);
+
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
+
+                    $sheet->image->update(['url' => $url]);
+                } else {
+                    $sheet->image()->create(['url' => $url]);
+                }
+            }
+
             $sheet->model_id = $validated['model_id'];
+            $sheet->status = $validated['status'];
             $sheet->version = $validated['version'] ?? $sheet->version;
             $sheet->save();
 

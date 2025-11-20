@@ -28,9 +28,10 @@ class TechnicalSheetSeeder extends Seeder
                 TechnicalSheet::create([
                     'model_id' => $model->id,
                     'file_name' => $sheet['file_name'],
-                    'file_path' => 'fichas/' . $sheet['file_name'], // ruta simulada
+                    'file_path' => 'fichas/' . $sheet['file_name'],
                     'version' => 'v1.0',
-                    //'uploaded_by' => 1, // puedes cambiarlo si tienes usuarios
+                    'uploaded_by' => 27,
+                    'status' => 1,
                 ]);
             }
         }

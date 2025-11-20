@@ -15,6 +15,8 @@ class User extends Authenticatable
 
     const ADMIN = 1;
     const VIEWER = 2;
+    const DIRECTOR = 3;
+    const GERENTE = 4;
 
     protected $fillable = [
         'first_name',

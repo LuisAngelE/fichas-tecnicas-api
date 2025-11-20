@@ -1567,7 +1567,7 @@ class UsersSeeder extends Seeder
             'phone' => '0',
             'employee_number' => '230202',
             'password' => Hash::make('password'),
-            'user_type' => 1,
+            'user_type' => 4,
         ]);
 
         User::create([
@@ -2803,7 +2803,7 @@ class UsersSeeder extends Seeder
             'phone' => '0',
             'employee_number' => '240389',
             'password' => Hash::make('password'),
-            'user_type' => 1,
+            'user_type' => 2,
         ]);
 
         User::create([
@@ -7039,7 +7039,7 @@ class UsersSeeder extends Seeder
             'phone' => '7291623408',
             'employee_number' => '250852',
             'password' => Hash::make('password'),
-            'user_type' => 1,
+            'user_type' => 3,
         ]);
 
         User::create([

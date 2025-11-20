@@ -21,7 +21,7 @@ class AuthController extends Controller
                 'phone'             => 'required|string|max:20',
                 'employee_number'   => 'required|string|max:50',
                 'password'          => 'required|string',
-                'user_type'         => 'nullable|integer|in:1,2',
+                'user_type'         => 'nullable|integer|in:1,2,3,4',
             ], [
                 'first_name.required' => 'El primer nombre es obligatorio.',
                 'last_name.required' => 'El primer apellido es obligatorio.',

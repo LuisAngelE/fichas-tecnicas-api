@@ -27,6 +27,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/technical-sheets/development', [TechnicalSheetController::class, 'inDevelopment']);
+    Route::get('/technical-sheets/completed', [TechnicalSheetController::class, 'completed']);
     Route::resource('/technical-sheets', TechnicalSheetController::class);
 
     Route::resource('/categories', CategoryController::class);

@@ -19,8 +19,8 @@ class DatabaseSeeder extends Seeder
             SubcategorySeeder::class,
             SegmentSeeder::class,
             ModelSeeder::class,
-            TechnicalSheetSeeder::class,
             UsersSeeder::class,
+            TechnicalSheetSeeder::class,
         ]);
     }
 }

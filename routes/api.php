@@ -23,10 +23,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
         'phone' => $user->phone,
         'employee_number' => $user->employee_number,
         'user_type' => $user->user_type,
+        'position' => $user->position,
+        'url' => $user->url,
     ]);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {  
     Route::get('/technical-sheets/development', [TechnicalSheetController::class, 'inDevelopment']);
     Route::get('/technical-sheets/completed', [TechnicalSheetController::class, 'completed']);
     Route::resource('/technical-sheets', TechnicalSheetController::class);

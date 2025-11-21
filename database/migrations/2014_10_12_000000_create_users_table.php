@@ -24,6 +24,8 @@ return new class extends Migration
             $table->string('employee_number', 50)->nullable();
             $table->string('password')->nullable();
             $table->tinyInteger('user_type')->default(2)->comment('1 = Admin, 2 = Viewer');
+            $table->string('position')->nullable();
+            $table->string('url')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

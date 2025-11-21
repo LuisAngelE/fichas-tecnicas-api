@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('middle_name', 100)->nullable();
             $table->string('last_name', 100)->nullable();
             $table->string('second_last_name', 100)->nullable();
-            $table->string('email')->nullable()->unique();
+            $table->string('email')->nullable();
             $table->string('phone', 20)->nullable();
             $table->string('employee_number', 50)->nullable();
             $table->string('password')->nullable();

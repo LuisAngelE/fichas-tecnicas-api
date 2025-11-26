@@ -74,13 +74,6 @@ class ModelController extends Controller
         try {
             $model = CarModel::findOrFail($id);
 
-            if ($model->technicalSheets()->exists()) {
-                return response()->json([
-                    'error' => 'No se puede editar el modelo.',
-                    'mensaje' => 'El modelo tiene fichas técnicas asociadas y no puede ser editado.'
-                ], 409);
-            }
-
             $validated = $request->validate([
                 'segment_id' => 'required|exists:segments,id',
                 'name' => 'required|string|max:255|unique:models,name,' . $model->id,
@@ -124,7 +117,7 @@ class ModelController extends Controller
                     'mensaje' => 'El modelo tiene fichas técnicas asociadas y no puede ser eliminado.'
                 ], 409);
             }
-            
+
             $model->delete();
 
             return response()->json([
